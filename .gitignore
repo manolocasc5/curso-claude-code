@@ -1,3 +1,7 @@
 node_modules/
 .env
 kohi.db
+kohi.db-shm
+kohi.db-wal
+.playwright-mcp/
+*.png
