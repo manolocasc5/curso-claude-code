@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión — Kōhi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html">K<span>ō</span>hi</a>
+</header>
+
+<main class="page">
+  <div class="card">
+    <h2>Bienvenido de nuevo</h2>
+    <p class="card-subtitle">Inicia sesión para ver tu lugar en la lista.</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Iniciar sesión</button>
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <p class="form-footer">¿Aún no estás en la lista? <a href="register.html">Únete aquí</a></p>
+  </div>
+</main>
+
+<script>
+const form = document.getElementById('loginForm');
+const messageEl = document.getElementById('message');
+const submitBtn = document.getElementById('submitBtn');
+
+function showMessage(text, type) {
+  messageEl.textContent = text;
+  messageEl.className = `message show ${type}`;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  messageEl.className = 'message';
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    showMessage('Completa todos los campos.', 'error');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Entrando...';
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMessage(data.error || 'No se pudo iniciar sesión.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Iniciar sesión';
+      return;
+    }
+
+    localStorage.setItem('kohi_token', data.token);
+    showMessage('Sesión iniciada. Redirigiendo...', 'success');
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    showMessage('Error de conexión. Inténtalo de nuevo.', 'error');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Iniciar sesión';
+  }
+});
+</script>
+</body>
+</html>
