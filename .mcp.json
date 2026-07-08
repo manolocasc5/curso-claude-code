@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "C:/Users/manol/AppData/Roaming/Python/Python314/Scripts/uvx.exe",
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "./kohi.db"
+      ],
+      "env": {}
+    }
+  }
+}

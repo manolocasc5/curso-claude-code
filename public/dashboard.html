@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi lugar en la lista — Kōhi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html">K<span>ō</span>hi</a>
+</header>
+
+<main class="page">
+  <div id="loadingState" class="loading-state">Cargando tu lugar en la lista...</div>
+
+  <div id="dashboardCard" class="card dashboard-card" style="display:none;">
+    <p class="dashboard-greeting">Bienvenido de nuevo</p>
+    <h2 class="dashboard-name" id="userName"></h2>
+
+    <p class="queue-position">Eres el <strong id="positionValue"></strong> de <span id="totalValue"></span></p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="qr-box">
+      <img id="qrImage" alt="Código QR de tu lugar en la lista" width="160" height="160">
+      <p class="qr-caption">Guarda tu código de confirmación</p>
+    </div>
+
+    <a href="#" id="logoutLink" class="dashboard-logout">Cerrar sesión</a>
+  </div>
+
+  <div id="errorState" class="message error" style="display:none; max-width:400px;"></div>
+</main>
+
+<script>
+const token = localStorage.getItem('kohi_token');
+
+const loadingState = document.getElementById('loadingState');
+const dashboardCard = document.getElementById('dashboardCard');
+const errorState = document.getElementById('errorState');
+
+function goToLogin() {
+  localStorage.removeItem('kohi_token');
+  window.location.href = 'login.html';
+}
+
+if (!token) {
+  goToLogin();
+} else {
+  fetch('/api/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(async (res) => {
+      const data = await res.json();
+
+      if (res.status === 401) {
+        goToLogin();
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || 'No se pudo cargar tu información.');
+      }
+
+      const { name, position, total } = data;
+
+      document.getElementById('userName').textContent = name;
+      document.getElementById('positionValue').textContent = `#${position}`;
+      document.getElementById('totalValue').textContent = total;
+
+      const progress = total > 1
+        ? Math.round(((total - position + 1) / total) * 100)
+        : 100;
+      document.getElementById('progressFill').style.width = `${progress}%`;
+
+      const qrText = `Kōhi · Lista de espera · Posición #${position} · ${name}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data=${encodeURIComponent(qrText)}`;
+      document.getElementById('qrImage').src = qrUrl;
+
+      loadingState.style.display = 'none';
+      dashboardCard.style.display = 'block';
+    })
+    .catch((err) => {
+      loadingState.style.display = 'none';
+      errorState.textContent = err.message || 'Error de conexión. Inténtalo de nuevo.';
+      errorState.style.display = 'block';
+    });
+}
+
+document.getElementById('logoutLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  goToLogin();
+});
+</script>
+</body>
+</html>
