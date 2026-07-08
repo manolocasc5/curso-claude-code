@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
+const { validateEmail } = require('../src/validators/emailValidator');
 
 const router = express.Router();
 
@@ -26,6 +27,10 @@ router.post('/register', async (req, res) => {
 
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'name, email y password son obligatorios' });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'El email no tiene un formato válido' });
   }
 
   try {
